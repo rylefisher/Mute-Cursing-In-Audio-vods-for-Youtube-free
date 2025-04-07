@@ -13,8 +13,6 @@ import json
 from _globals import *
 
 
-# 0.4 IS 0.2 ADDITIONAL SECONDS BEFORE AND AFTER CURSE ON TOP OF EXISTING SILENCE.
-
 
 class PortableNoiseReduction:
     def __init__(
@@ -134,7 +132,6 @@ def apply_combined_fades(
     # Ensure silence between the fades
     if fade_out_end < fade_in_start:
         audio[fade_out_end:fade_in_start] = 0
-
     return audio
 
 

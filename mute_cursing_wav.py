@@ -335,6 +335,9 @@ class AudioTranscriber:
         self.save_transcription(audio_path, result)
         aud, self.clean_json, any_cursing_found = self.censor_cursing(audio_path)
         if any_cursing_found:
+            print('\n\n')
+            print("@@@@@@@@@@@\nsecond go 'round\n@@@@@@@@@@@")
+            print('\n\n')
             result = self.transcribe_audio(aud)
             self.save_transcription(aud, result)
             aud, self.clean_json, any_cursing_found = self.censor_cursing(aud)

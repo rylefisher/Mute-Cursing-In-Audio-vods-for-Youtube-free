@@ -40,7 +40,7 @@ class NumpyMono:
     def __init__(self, audio_file_path):
         self.audio_file_path = audio_file_path
         self.np_array, self.sample_rate = read_audio_file(audio_file_path)
-        self.output_file_name = audio_file_path.replace('.wav','') + "_clean_.wav"
+        self.output_file_name = audio_file_path.replace('.wav','') + "_cln.wav"
 
     def numpy_to_wav(self):
         # Exporting numpy array to a .wav file
