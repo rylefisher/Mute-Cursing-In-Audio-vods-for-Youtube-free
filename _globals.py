@@ -4,7 +4,7 @@ from pathlib import Path
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 MODEL_SIZE = r"turbo"
-SPLIT_IN_MS = 20
+SPLIT_IN_MS = 28
 print("loading model")
 MODEL = stable_whisper.load_model(MODEL_SIZE, device="cuda")
 
@@ -14,6 +14,7 @@ tier1_buffer = 1.02
 tier2_buffer = 0.95
 CURSE_TIER1 = "curse_words_tier1.csv"
 CURSE_TIER2 = "curse_words_tier2.csv"
+CURSE_EXACT_MATCH = "curse_words_exact_match.csv"
 
 sample_audio_path = "looperman.wav"
 transcripts = ""

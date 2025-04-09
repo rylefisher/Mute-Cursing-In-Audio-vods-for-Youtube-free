@@ -13,7 +13,6 @@ import json
 from _globals import *
 
 
-
 class PortableNoiseReduction:
     def __init__(
         self, array: np.ndarray, start_time: float, end_time: float, sample_rate: int
@@ -140,53 +139,57 @@ def logger(message):
         f.write(message + "\n")
 
 
-import numpy as np
-
-
 def mute_curse_words(
-    audio_data,
-    sample_rate,
-    transcription_result,
-    curse_words_tier1,
-    curse_words_tier2,
-    log=True,
-):
-    audio_data_muted = np.copy(audio_data)  # Create copy once for mutation
-    any_cursing_found = False
+  audio_data,
+  sample_rate,
+  transcription_result,
+  curse_words_tier1,
+  curse_words_tier2,
+  curse_words_exact_match, # added parameter
+  log=True,
+ ):
+  audio_data_muted = np.copy(audio_data)
+  any_cursing_found = False
+  if log:
+   print("\n\n\n\n\n")
+
+  for word in transcription_result:
+   word_text = word["word"].lower()
+
+   if len(word_text) < 3: # skip very short words
+    continue
+
+   matched_curse = next(
+    (curse for curse in curse_words_tier1 if curse in word_text), None
+   )
+   tier = 1 if matched_curse else None
+
+   if not matched_curse:
+    matched_curse = next(
+     (curse for curse in curse_words_tier2 if curse in word_text), None
+    )
+    tier = 2 if matched_curse else None
+
+   # --- start change: add exact match check ---
+   if not matched_curse:
+    matched_curse = next(
+     (curse for curse in curse_words_exact_match if curse == word_text), None # check for exact match
+    )
+    tier = 2 if matched_curse else None # using tier 2 fade for exact matches as well, adjust if needed
+   # --- end change ---
+
+   if matched_curse:
+    any_cursing_found = True
     if log:
-        print("\n\n\n\n\n")  # Keep logging as requested
+     length_temp = word["end"] - word["start"]
+     print(
+      f"\ncurse:{matched_curse} (Tier {tier}) -> transcript word:{word['word']} -> prob {word['probability']} FOR {length_temp:.2f}s (time)\n" # adjusted log
+     )
+    audio_data_muted = apply_combined_fades(
+     audio_data_muted, sample_rate, word["start"], word["end"], tier
+    )
 
-    for word in transcription_result:
-        word_text = word["word"].lower()
-
-        if len(word_text) < 3:  # Skip short words early
-            continue
-
-        # Check tier1 curses first, then tier2
-        matched_curse = next(
-            (curse for curse in curse_words_tier1 if curse in word_text), None
-        )
-        tier = 1 if matched_curse else None
-
-        if not matched_curse:
-            matched_curse = next(
-                (curse for curse in curse_words_tier2 if curse in word_text), None
-            )
-            tier = 2 if matched_curse else None
-
-        if matched_curse:
-            any_cursing_found = True
-            if log:
-                print(
-                    f"\ncurse:{matched_curse} -> transcript word:{word['word']} -> prob {word['probability']}\n"
-                )
-            # Pass tier to apply_combined_fades
-            audio_data_muted = apply_combined_fades(
-                audio_data_muted, sample_rate, word["start"], word["end"], tier
-            )
-
-    return audio_data_muted, any_cursing_found
-
+  return audio_data_muted, any_cursing_found
 
 def convert_stereo(f):
     return NumpyMono(f)
@@ -200,11 +203,20 @@ curses_tier2 = read_curse_words_from_csv(CURSE_TIER2)
 curse_tier2_list = set(curses_tier2)
 curse_tier2_set = set(curse.lower() for curse in curse_tier2_list)
 
+curse_exact = read_curse_words_from_csv(CURSE_EXACT_MATCH)
+curse_exact_list = set(curse_exact)
+curse_exact_set = set(curse.lower() for curse in curse_exact_list)
+
 
 def find_curse_words(audio_content, sample_rate, results):
-    global curse_words_tier1, curse_tier2_set
+    global curse_words_tier1, curse_tier2_set, curse_exact_set
     return mute_curse_words(
-        audio_content, sample_rate, results, curses_tier1_set, curse_tier2_set
+        audio_content,
+        sample_rate,
+        results,
+        curses_tier1_set,
+        curse_tier2_set,
+        curse_exact_set,
     )
 
 
