@@ -1,20 +1,32 @@
-import stable_whisper
 import os
 from pathlib import Path
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 MODEL_SIZE = r"turbo"
-SPLIT_IN_MS = 28
-print("loading model")
-MODEL = stable_whisper.load_model(MODEL_SIZE, device="cuda")
+SPLIT_IN_MS = 1100
 
+# censorship 
+
+# Choose Censor Mode: 'silence' or 'wav_insert'
+# MODE = 'silence'
+CENSOR_MODE = "wav_insert"
+INSERT_WAV = "insert.wav"  # MUST PROVIDE PATH for wav_insert
+
+OUTPUT_DIR = "D:\\"  # Optional output directory
+
+print("loading model")
+with open("hf_token.txt", "r") as f:
+    tmp = f.read()
+HF_TOKEN = tmp.strip()
 min_silence_duration = 0.08
 segment_duration = 3000
 tier1_buffer = 1.02
-tier2_buffer = 0.95
+tier2_buffer = 1.003
 CURSE_TIER1 = "curse_words_tier1.csv"
 CURSE_TIER2 = "curse_words_tier2.csv"
 CURSE_EXACT_MATCH = "curse_words_exact_match.csv"
+FADE_DURATION = 0.02
+CURSE_SOUND = "insert.wav"
 
 sample_audio_path = "looperman.wav"
 transcripts = ""
@@ -34,7 +46,7 @@ transcription_options = {
     ),  # Lower temperatures for more accurate transcriptions
     "compression_ratio_threshold": None,  # Slightly more strict to avoid bad compression artifacts
     "logprob_threshold": -2,  # Adjust as needed for your audio characteristics. Lower values increase strictness.
-    "no_speech_threshold": 0.15,  # Reduce false positives
+    "no_speech_threshold": 0.1,  # Reduce false positives
     "condition_on_previous_text": True,  # Helps maintain context across segments.
     "word_timestamps": True,  # Necessary for precise timing adjustments.
     "regroup": True,  # Improves segment grouping after VAD.
